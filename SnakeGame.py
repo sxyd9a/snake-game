@@ -64,6 +64,15 @@ while True:
         if event.type == SCREEN_UPDATE:
             #move snake on every SCREEN_UPDATE event
             snake.move_snake()
+        if event.type == pygame.KEYDOWN: #move snake depending on pressed key
+            if event.key == pygame.K_UP:
+                snake.direction = Vector2(0,-1)
+            if event.key == pygame.K_RIGHT:
+                snake.direction = Vector2(1,0)
+            if event.key == pygame.K_DOWN:
+                snake.direction = Vector2(0,1)
+            if event.key == pygame.K_LEFT:
+                snake.direction = Vector2(-1,0)
 
     #draw game background and all elements
     screen.fill((175,215,70))  # Fill background with green

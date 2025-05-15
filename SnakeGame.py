@@ -1,47 +1,74 @@
 import pygame, sys, random
 from pygame.math import Vector2
 
+#snake class to handle snake's body, movement, and rendering
 class SNAKE:
     def __init__(self):
+        #snake starts with 3 body segments
         self.body = [Vector2(5,10), Vector2(6,10), Vector2(7,10)]
+        #initial movement direction (right)
+        self.direction = Vector2(1,0)
 
     def draw_snake(self):
+        #draw each block of the snake on the screen
         for block in self.body:
-            x_pos = int(block.x*cell_size)
-            y_pos = int(block.y*cell_size)
+            x_pos = int(block.x * cell_size)
+            y_pos = int(block.y * cell_size)
             block_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
             pygame.draw.rect(screen, (183,111,122), block_rect)
 
+    def move_snake(self):
+        #move snake forward in current direction
+        body_copy = self.body[:-1]  #remove the tail segment
+        body_copy.insert(0, body_copy[0] + self.direction)  #add a new head in the direction
+        self.body = body_copy[:]  #update snake body
+
+#fruit class to handle fruit position and rendering
 class FRUIT:
     def __init__(self):
-        self.x = random.randint(0,cell_num - 1)
-        self.y = random.randint(0,cell_num - 1)
-        self.pos = Vector2(self.x,self.y) #position of fruit
+        #generate random position for fruit on grid
+        self.x = random.randint(0, cell_num - 1)
+        self.y = random.randint(0, cell_num - 1)
+        self.pos = Vector2(self.x, self.y)
 
     def draw_fruit(self):
-        x_pos = int(self.x*cell_size)
-        y_pos = int(self.y*cell_size)
+        #draw fruit on screen at its grid position
+        x_pos = int(self.x * cell_size)
+        y_pos = int(self.y * cell_size)
         fruit_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
-        pygame.draw.rect(screen,(126,166,114),fruit_rect) #place rect on screen
+        pygame.draw.rect(screen, (126,166,114), fruit_rect)
 
+#initialize pygame/constants
 pygame.init()
-cell_size = 25
-cell_num = 20
-screen = pygame.display.set_mode((cell_num*cell_size, cell_num*cell_size)) #display window size
-clock = pygame.time.Clock()
+cell_size = 25  #size of each cell (square)
+cell_num = 20   #number of cells in the grid (width and height)
+screen = pygame.display.set_mode((cell_num * cell_size, cell_num * cell_size))  #game window
+clock = pygame.time.Clock()  #clock to control frame rate
 
+#create fruit and snake objects
 fruit = FRUIT()
 snake = SNAKE()
 
-while True: #game loop
+#pygame event for updating game logic
+SCREEN_UPDATE = pygame.USEREVENT
+pygame.time.set_timer(SCREEN_UPDATE, 150)  #trigger SCREEN_UPDATE every 150ms
 
-    for event in pygame.event.get(): #event loop
-        if event.type == pygame.QUIT: #close game
+#game loop -
+while True:
+    #event loop to handle inputs and timed events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            #exit the game
             pygame.quit()
             sys.exit()
-    screen.fill((175,215,70)) #fill screen with specified RGB (0-255)
-    fruit.draw_fruit()
-    snake.draw_snake()
-    #draw all game elements
-    pygame.display.update()
-    clock.tick(60) #run game loop at 60 fps
+        if event.type == SCREEN_UPDATE:
+            #move snake on every SCREEN_UPDATE event
+            snake.move_snake()
+
+    #draw game background and all elements
+    screen.fill((175,215,70))  # Fill background with green
+    fruit.draw_fruit()         # Draw fruit on the screen
+    snake.draw_snake()         # Draw snake on the screen
+
+    pygame.display.update()    #refresh display
+    clock.tick(60)             #limit loop to 60 frames per second

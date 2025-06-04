@@ -5,7 +5,7 @@ from pygame.math import Vector2
 class SNAKE:
     def __init__(self):
         #snake starts with 3 body segments
-        self.body = [Vector2(5,10), Vector2(6,10), Vector2(7,10)]
+        self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)]
         #initial movement direction (right)
         self.direction = Vector2(1,0)
         #flag to indicate if a new block should be added
@@ -64,6 +64,7 @@ class MAIN:
         #update snake's position and check for collisions
         self.snake.move_snake()
         self.check_collision()
+        self.check_fail()
 
     def draw_elements(self):
         #draw all game elements: fruit and snake
@@ -75,6 +76,23 @@ class MAIN:
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomize()  #relocate fruit
             self.snake.add_block()  #grow snake
+
+    def check_fail(self):
+        #check if snake hits the wall
+        if not 0 <= self.snake.body[0].x < cell_num or not 0 <= self.snake.body[0].y < cell_num:
+            self.game_over()
+    
+        #check if snake collides with itself
+        for block in self.snake.body[1:]:
+            if block == self.snake.body[0]:
+                self.game_over()
+    
+    def game_over(self):
+        #exit game on failure
+        pygame.quit()
+        sys.exit()
+
+
 
 
 #initialize pygame/constants
@@ -103,13 +121,17 @@ while True:
             main_game.update()
         if event.type == pygame.KEYDOWN: #move snake depending on pressed key
             if event.key == pygame.K_UP:
-                main_game.snake.direction = Vector2(0,-1)
+                if main_game.snake.direction.y != 1:
+                    main_game.snake.direction = Vector2(0,-1)
             if event.key == pygame.K_RIGHT:
-                main_game.snake.direction = Vector2(1,0)
+                if main_game.snake.direction.x != -1:
+                    main_game.snake.direction = Vector2(1,0)
             if event.key == pygame.K_DOWN:
-                main_game.snake.direction = Vector2(0,1)
+                if main_game.snake.direction.y != -1:
+                    main_game.snake.direction = Vector2(0,1)
             if event.key == pygame.K_LEFT:
-                main_game.snake.direction = Vector2(-1,0)
+                if main_game.snake.direction.x != 1:
+                    main_game.snake.direction = Vector2(-1,0)
 
     #draw game background and all elements
     screen.fill((175,215,70))  #fill background with green

@@ -7,7 +7,7 @@ class SNAKE:
         #snake starts with 3 body segments
         self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)]
         #initial movement direction (right)
-        self.direction = Vector2(1,0)
+        self.direction = Vector2(0,0)
         #flag to indicate if a new block should be added
         self.new_block = False
 
@@ -26,6 +26,9 @@ class SNAKE:
         self.body_tl = pygame.image.load('Graphics/body_tl.png').convert_alpha()
         self.body_br = pygame.image.load('Graphics/body_br.png').convert_alpha()
         self.body_bl = pygame.image.load('Graphics/body_bl.png').convert_alpha()
+
+        #import snake eating sound
+        self.crunch_sound = pygame.mixer.Sound("Sound/crunch.wav")
 
 
     def draw_snake(self):
@@ -107,6 +110,14 @@ class SNAKE:
         #trigger snake to grow in the next move
         self.new_block = True
 
+    def play_crunch_sound(self):
+        self.crunch_sound.play() #trigger snake crunching sound 
+
+    def reset(self):
+        self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)] #reset snake to intial start position
+        self.direction = Vector2(0,0) #reset snake direction
+
+
 #fruit class to handle fruit position and rendering
 class FRUIT:
     def __init__(self):
@@ -149,6 +160,12 @@ class MAIN:
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomize()  #relocate fruit
             self.snake.add_block()  #grow snake
+            self.snake.play_crunch_sound() #snake crunching apple sound
+
+        #ensure fruit doesn't appear on a part of the snake's body
+        for block in self.snake.body[1:]:
+            if block == self.fruit.pos:
+                self.fruit.randomize()
 
     def check_fail(self):
         #check if snake hits the wall
@@ -161,9 +178,7 @@ class MAIN:
                 self.game_over()
     
     def game_over(self):
-        #exit game on failure
-        pygame.quit()
-        sys.exit()
+        self.snake.reset() #restart game for user
 
     def draw_grass(self):
         grass_color = (167, 209, 61)  #a greenish color for the grass
@@ -183,15 +198,19 @@ class MAIN:
         score_y = int(cell_size * cell_num - 40)
         score_rect = score_surface.get_rect(center=(score_x, score_y))  #text position
         apple_rect = apple.get_rect(midright=(score_rect.left, score_rect.centery))  #apple icon position
+        bg_rect = pygame.Rect(apple_rect.left,apple_rect.top,apple_rect.width+score_rect.width+6,apple_rect.height) #score background position
 
+        pygame.draw.rect(screen,(167,209,61),bg_rect) #draw score background
         screen.blit(score_surface, score_rect)  #draw score
         screen.blit(apple, apple_rect)  #draw apple icon
+        pygame.draw.rect(screen,(56, 74, 12),bg_rect,2) #draw frame around score
 
 
 
 
 
 #initialize pygame/constants
+pygame.mixer.pre_init(44100,-16,2,512) #handle sound delay
 pygame.init()
 cell_size = 38  #size of each cell (square)
 cell_num = 16   #number of cells in the grid (width and height)
@@ -199,6 +218,7 @@ screen = pygame.display.set_mode((cell_num * cell_size, cell_num * cell_size))  
 clock = pygame.time.Clock()  #clock to control frame rate
 apple = pygame.image.load("Graphics/apple.png").convert_alpha() #load in the apple graphic for usage
 game_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf',25)
+
 
 main_game = MAIN()
 

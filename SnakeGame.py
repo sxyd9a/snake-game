@@ -33,31 +33,43 @@ class SNAKE:
         self.update_tail_graphics() #update tail orientation based on movements
 
         #draw each block of the snake on the screen
-        for index,block in enumerate(self.body):
-            x_pos = int(block.x * cell_size)
-            y_pos = int(block.y * cell_size)
-            block_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
+        for index, block in enumerate(self.body):
+            x_pos = int(block.x * cell_size)  #calculate the pixel x-position of the block
+            y_pos = int(block.y * cell_size)  #calculate the pixel y-position of the block
+            block_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)  #Create a rectangle for drawing
 
             if index == 0:
-                screen.blit(self.head,block_rect)
+                #head of the snake
+                screen.blit(self.head, block_rect)
             elif index == len(self.body) - 1:
-                screen.blit(self.tail,block_rect)
+                #tail of the snake
+                screen.blit(self.tail, block_rect)
             else:
-                previous_block = self.body[index+1] - block
-                next_block = self.body[index-1] - block
+                #middle part of the snake (body segments)
+                previous_block = self.body[index + 1] - block  #Vector from current to next block
+                next_block = self.body[index - 1] - block      #Vector from current to previous block
+
                 if previous_block.x == next_block.x:
-                    screen.blit(self.body_vertical,block_rect)
+                    #the segment is vertically aligned (same x-axis)
+                    screen.blit(self.body_vertical, block_rect)
                 elif previous_block.y == next_block.y:
-                    screen.blit(self.body_horizontal,block_rect)
+                    #the segment is horizontally aligned (same y-axis)
+                    screen.blit(self.body_horizontal, block_rect)
                 else:
-                    if previous_block.x == -1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == -1: 
-                        screen.blit(self.body_tl,block_rect)
-                    elif previous_block.x == -1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == -1: 
-                        screen.blit(self.body_bl,block_rect)
-                    elif previous_block.x == 1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == 1: 
-                        screen.blit(self.body_tr,block_rect)
-                    elif previous_block.x == 1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == 1: 
-                        screen.blit(self.body_br,block_rect)
+                    #the segment is a corner piece
+                    if (previous_block.x == -1 and next_block.y == -1) or (previous_block.y == -1 and next_block.x == -1):
+                        #top-left corner (coming from right or down)
+                        screen.blit(self.body_tl, block_rect)
+                    elif (previous_block.x == -1 and next_block.y == 1) or (previous_block.y == 1 and next_block.x == -1):
+                        #bottom-left corner (coming from right or up)
+                        screen.blit(self.body_bl, block_rect)
+                    elif (previous_block.x == 1 and next_block.y == -1) or (previous_block.y == -1 and next_block.x == 1):
+                        #top-right corner (coming from left or down)
+                        screen.blit(self.body_tr, block_rect)
+                    elif (previous_block.x == 1 and next_block.y == 1) or (previous_block.y == 1 and next_block.x == 1):
+                        #bottom-right corner (coming from left or up)
+                        screen.blit(self.body_br, block_rect)
+
 
     def update_head_graphics(self):
         #update head graphic based on the direction of movement
@@ -126,9 +138,11 @@ class MAIN:
         self.check_fail()
 
     def draw_elements(self):
-        #draw all game elements: fruit and snake
+        #draw all game elements
+        self.draw_grass()
         self.fruit.draw_fruit()         
         self.snake.draw_snake() 
+        self.draw_score()
 
     def check_collision(self):
         #check if snake's head has collided with the fruit
@@ -151,16 +165,41 @@ class MAIN:
         pygame.quit()
         sys.exit()
 
+    def draw_grass(self):
+        grass_color = (167, 209, 61)  #a greenish color for the grass
+
+        for row in range(cell_num):
+            for col in range(cell_num):
+                #this condition creates a checkerboard pattern:
+                #only draw on cells where the sum of row and col is even
+                if (row + col) % 2 == 0:
+                    grass_rect = pygame.Rect(col * cell_size, row * cell_size, cell_size, cell_size)
+                    pygame.draw.rect(screen, grass_color, grass_rect)
+    
+    def draw_score(self):
+        score_text = str(len(self.snake.body) - 3)  #current score
+        score_surface = game_font.render(score_text, True, (56, 74, 12))  #render text
+        score_x = int(cell_size * cell_num - 60)
+        score_y = int(cell_size * cell_num - 40)
+        score_rect = score_surface.get_rect(center=(score_x, score_y))  #text position
+        apple_rect = apple.get_rect(midright=(score_rect.left, score_rect.centery))  #apple icon position
+
+        screen.blit(score_surface, score_rect)  #draw score
+        screen.blit(apple, apple_rect)  #draw apple icon
+
+
 
 
 
 #initialize pygame/constants
 pygame.init()
-cell_size = 35  #size of each cell (square)
-cell_num = 15   #number of cells in the grid (width and height)
+cell_size = 38  #size of each cell (square)
+cell_num = 16   #number of cells in the grid (width and height)
 screen = pygame.display.set_mode((cell_num * cell_size, cell_num * cell_size))  #game window
 clock = pygame.time.Clock()  #clock to control frame rate
 apple = pygame.image.load("Graphics/apple.png").convert_alpha() #load in the apple graphic for usage
+game_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf',25)
+
 main_game = MAIN()
 
 #pygame event for updating game logic

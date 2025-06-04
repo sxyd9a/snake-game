@@ -11,13 +11,72 @@ class SNAKE:
         #flag to indicate if a new block should be added
         self.new_block = False
 
+        #load in every graphic representing parts of a snake
+        self.head_up = pygame.image.load('Graphics/head_up.png').convert_alpha()
+        self.head_down = pygame.image.load('Graphics/head_down.png').convert_alpha()
+        self.head_right = pygame.image.load('Graphics/head_right.png').convert_alpha()
+        self.head_left = pygame.image.load('Graphics/head_left.png').convert_alpha()
+        self.tail_up = pygame.image.load('Graphics/tail_up.png').convert_alpha()
+        self.tail_down = pygame.image.load('Graphics/tail_down.png').convert_alpha()
+        self.tail_right = pygame.image.load('Graphics/tail_right.png').convert_alpha()
+        self.tail_left = pygame.image.load('Graphics/tail_left.png').convert_alpha()
+        self.body_vertical = pygame.image.load('Graphics/body_vertical.png').convert_alpha()
+        self.body_horizontal = pygame.image.load('Graphics/body_horizontal.png').convert_alpha()
+        self.body_tr = pygame.image.load('Graphics/body_tr.png').convert_alpha()
+        self.body_tl = pygame.image.load('Graphics/body_tl.png').convert_alpha()
+        self.body_br = pygame.image.load('Graphics/body_br.png').convert_alpha()
+        self.body_bl = pygame.image.load('Graphics/body_bl.png').convert_alpha()
+
+
     def draw_snake(self):
+        self.update_head_graphics() #update head orientation based on movements
+        self.update_tail_graphics() #update tail orientation based on movements
+
         #draw each block of the snake on the screen
-        for block in self.body:
+        for index,block in enumerate(self.body):
             x_pos = int(block.x * cell_size)
             y_pos = int(block.y * cell_size)
             block_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
-            pygame.draw.rect(screen, (183,111,122), block_rect)
+
+            if index == 0:
+                screen.blit(self.head,block_rect)
+            elif index == len(self.body) - 1:
+                screen.blit(self.tail,block_rect)
+            else:
+                previous_block = self.body[index+1] - block
+                next_block = self.body[index-1] - block
+                if previous_block.x == next_block.x:
+                    screen.blit(self.body_vertical,block_rect)
+                elif previous_block.y == next_block.y:
+                    screen.blit(self.body_horizontal,block_rect)
+                else:
+                    if previous_block.x == -1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == -1: 
+                        screen.blit(self.body_tl,block_rect)
+                    elif previous_block.x == -1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == -1: 
+                        screen.blit(self.body_bl,block_rect)
+                    elif previous_block.x == 1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == 1: 
+                        screen.blit(self.body_tr,block_rect)
+                    elif previous_block.x == 1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == 1: 
+                        screen.blit(self.body_br,block_rect)
+
+    def update_head_graphics(self):
+        #update head graphic based on the direction of movement
+        head_relation = self.body[1] - self.body[0]  #compare head with next segment
+        if head_relation == Vector2(1,0): self.head = self.head_left    #moving left
+        if head_relation == Vector2(-1,0): self.head = self.head_right  #moving right
+        if head_relation == Vector2(0,1): self.head = self.head_up      #moving up
+        if head_relation == Vector2(0,-1): self.head = self.head_down   #moving down
+
+    def update_tail_graphics(self):
+        #update tail graphic based on the direction of movement
+        tail_relation = self.body[-2] - self.body[-1]  #compare tail with next segment
+        if tail_relation == Vector2(1,0): self.tail = self.tail_left    #moving left
+        if tail_relation == Vector2(-1,0): self.tail = self.tail_right  #moving right
+        if tail_relation == Vector2(0,1): self.tail = self.tail_up      #moving up
+        if tail_relation == Vector2(0,-1): self.tail = self.tail_down   #moving down
+
+
+
 
     def move_snake(self):
         if self.new_block == True:
@@ -47,7 +106,7 @@ class FRUIT:
         x_pos = int(self.x * cell_size)
         y_pos = int(self.y * cell_size)
         fruit_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
-        pygame.draw.rect(screen, (126,166,114), fruit_rect)
+        screen.blit(apple,fruit_rect)
 
     def randomize(self):
         #assign a new random grid position to the fruit
@@ -97,11 +156,11 @@ class MAIN:
 
 #initialize pygame/constants
 pygame.init()
-cell_size = 25  #size of each cell (square)
-cell_num = 20   #number of cells in the grid (width and height)
+cell_size = 35  #size of each cell (square)
+cell_num = 15   #number of cells in the grid (width and height)
 screen = pygame.display.set_mode((cell_num * cell_size, cell_num * cell_size))  #game window
 clock = pygame.time.Clock()  #clock to control frame rate
-
+apple = pygame.image.load("Graphics/apple.png").convert_alpha() #load in the apple graphic for usage
 main_game = MAIN()
 
 #pygame event for updating game logic
